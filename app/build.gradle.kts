@@ -1,10 +1,21 @@
 import java.util.Properties
+import java.io.FileInputStream
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+
+if (localPropertiesFile.exists()) {
+    FileInputStream(localPropertiesFile).use {
+        localProperties.load(it)
+    }
+}
+
+val nasaApiKey = localProperties.getProperty("NASA_API_KEY") ?: ""
 
 android {
     namespace = "dev.erick.pc02nasa"
@@ -13,6 +24,11 @@ android {
     }
 
     defaultConfig {
+        buildConfigField(
+            "String",
+            "NASA_API_KEY",
+            "\"${nasaApiKey}\""
+        )
         applicationId = "dev.erick.pc02nasa"
         minSdk = 34
         targetSdk = 37
@@ -39,17 +55,6 @@ android {
     }
 }
 
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localProperties.load(localPropertiesFile.inputStream())
-}
-val nasaApiKey = localProperties.getProperty("NASA_API_KEY", "DEMO_KEY")
-
-android.defaultConfig {
-    buildConfigField("String", "NASA_API_KEY", "\"$nasaApiKey\"")
-}
-
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
@@ -57,16 +62,10 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation("androidx.compose.material:material-icons-core")
-    implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.gson)
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
