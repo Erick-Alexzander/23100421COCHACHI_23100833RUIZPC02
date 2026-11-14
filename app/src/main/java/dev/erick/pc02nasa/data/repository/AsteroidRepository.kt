@@ -47,11 +47,18 @@ class AsteroidRepository(
                 .mapNotNull { it.toEntity() }
 
             if (entities.isNotEmpty()) {
-                dao.insertOrUpdateAsteroids(entities)
+                entities.forEach { newAsteroid ->
+                    val existing = dao.getAsteroidByIdSync(newAsteroid.id)
+                    if (existing != null) {
+                        // Conservar el estado de favorito si ya existe en la base de datos
+                        dao.updateAsteroid(newAsteroid.copy(isFavorite = existing.isFavorite))
+                    } else {
+                        dao.insertAsteroid(newAsteroid)
+                    }
+                }
             }
         } catch (e: Exception) {
             // Manejar errores de red u otros sin romper la aplicación
-            // En un caso real, podríamos devolver un Result con el error
             e.printStackTrace()
             throw e
         }
