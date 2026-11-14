@@ -133,9 +133,9 @@ fun AsteroidItem(
             Spacer(modifier = Modifier.height(8.dp))
             
             Text("Fecha: ${asteroid.approachDate}")
-            Text("Diám. Max: String.format(\"%.2f\", asteroid.maximumDiameterMeters) m".replace("String.format(\"%.2f\", asteroid.maximumDiameterMeters)", String.format("%.2f", asteroid.maximumDiameterMeters)))
-            Text("Velocidad: String.format(\"%.2f\", asteroid.velocityKmH) km/h".replace("String.format(\"%.2f\", asteroid.velocityKmH)", String.format("%.2f", asteroid.velocityKmH)))
-            Text("Distancia: String.format(\"%.2f\", asteroid.missDistanceKm) km".replace("String.format(\"%.2f\", asteroid.missDistanceKm)", String.format("%.2f", asteroid.missDistanceKm)))
+            Text("Diám. Max: ${"%.2f".format(java.util.Locale.US, asteroid.maximumDiameterMeters)} m")
+            Text("Velocidad: ${"%.2f".format(java.util.Locale.US, asteroid.velocityKmH)} km/h")
+            Text("Distancia: ${"%.2f".format(java.util.Locale.US, asteroid.missDistanceKm)} km")
             
             if (asteroid.isPotentiallyHazardous) {
                 Spacer(modifier = Modifier.height(8.dp))

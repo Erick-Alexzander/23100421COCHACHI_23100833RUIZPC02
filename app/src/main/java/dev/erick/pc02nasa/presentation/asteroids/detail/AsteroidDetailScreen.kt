@@ -2,7 +2,7 @@ package dev.erick.pc02nasa.presentation.asteroids.detail
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -27,7 +27,7 @@ fun AsteroidDetailScreen(
                 title = { Text("Detalle del Asteroide") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
                 }
             )
@@ -48,10 +48,10 @@ fun AsteroidDetailScreen(
                 
                 Text(text = "ID: ${data.id}")
                 Text(text = "Fecha de aproximación: ${data.approachDate}")
-                Text(text = "Diámetro Mín: String.format(\"%.2f\", data.minimumDiameterMeters) m".replace("String.format(\"%.2f\", data.minimumDiameterMeters)", String.format("%.2f", data.minimumDiameterMeters)))
-                Text(text = "Diámetro Máx: String.format(\"%.2f\", data.maximumDiameterMeters) m".replace("String.format(\"%.2f\", data.maximumDiameterMeters)", String.format("%.2f", data.maximumDiameterMeters)))
-                Text(text = "Velocidad Relativa: String.format(\"%.2f\", data.velocityKmH) km/h".replace("String.format(\"%.2f\", data.velocityKmH)", String.format("%.2f", data.velocityKmH)))
-                Text(text = "Distancia de paso: String.format(\"%.2f\", data.missDistanceKm) km".replace("String.format(\"%.2f\", data.missDistanceKm)", String.format("%.2f", data.missDistanceKm)))
+                Text(text = "Diámetro Mín: ${"%.2f".format(java.util.Locale.US, data.minimumDiameterMeters)} m")
+                Text(text = "Diámetro Máx: ${"%.2f".format(java.util.Locale.US, data.maximumDiameterMeters)} m")
+                Text(text = "Velocidad Relativa: ${"%.2f".format(java.util.Locale.US, data.velocityKmH)} km/h")
+                Text(text = "Distancia de paso: ${"%.2f".format(java.util.Locale.US, data.missDistanceKm)} km")
 
                 Spacer(modifier = Modifier.height(16.dp))
                 
