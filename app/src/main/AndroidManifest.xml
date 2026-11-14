@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Permiso necesario para consumir NASA API con Retrofit -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".NasaApplication"
         android:allowBackup="true"
