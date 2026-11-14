@@ -7,41 +7,49 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.compose.rememberNavController
+import dev.erick.pc02nasa.data.remote.NeoWsNetwork
+import dev.erick.pc02nasa.presentation.asteroids.AsteroidViewModel
+import dev.erick.pc02nasa.presentation.asteroids.AsteroidViewModelFactory
+import dev.erick.pc02nasa.presentation.navigation.AppNavGraph
+import dev.erick.pc02nasa.presentation.navigation.BottomNavigationBar
 import dev.erick.pc02nasa.ui.theme.PC02NASATheme
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var asteroidViewModel: AsteroidViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Inicialización manual de dependencias
+        val application = application as NasaApplication
+        val database = application.database
+        val api = NeoWsNetwork.neoWsService
+        val factory = AsteroidViewModelFactory(api, database.asteroidDao())
+        
+        asteroidViewModel = ViewModelProvider(this, factory)[AsteroidViewModel::class.java]
+
         setContent {
             PC02NASATheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
+                val navController = rememberNavController()
+
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    bottomBar = {
+                        BottomNavigationBar(navController = navController)
+                    }
+                ) { innerPadding ->
+                    AppNavGraph(
+                        navController = navController,
+                        asteroidViewModel = asteroidViewModel,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PC02NASATheme {
-        Greeting("Android")
     }
 }
