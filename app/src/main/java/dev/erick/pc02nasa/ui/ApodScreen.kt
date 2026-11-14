@@ -1,10 +1,14 @@
 package dev.erick.pc02nasa.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
@@ -25,6 +29,8 @@ import dev.erick.pc02nasa.viewmodel.ApodViewModel
 @Composable
 fun ApodScreen(
     viewModel: ApodViewModel,
+    onItemClick: (ApodItem) -> Unit,
+    onFavoritesClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -32,7 +38,16 @@ fun ApodScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Diario Espacial - APOD (Últimos 7 días)") }
+                title = { Text("Diario Espacial - APOD") },
+                actions = {
+                    IconButton(onClick = onFavoritesClick) {
+                        Icon(
+                            imageVector = Icons.Default.Favorite,
+                            contentDescription = "Ver Favoritos",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
             )
         },
         modifier = modifier
@@ -71,7 +86,13 @@ fun ApodScreen(
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             items(state.items) { item ->
-                                ApodItemCard(item = item)
+                                val isFav = viewModel.isFavorite(item.date ?: "")
+                                ApodItemCard(
+                                    item = item,
+                                    isFavorite = isFav,
+                                    onFavoriteClick = { viewModel.toggleFavorite(item) },
+                                    onItemClick = onItemClick
+                                )
                             }
                         }
                     }
@@ -104,48 +125,74 @@ fun ApodScreen(
 }
 
 @Composable
-fun ApodItemCard(item: ApodItem) {
+fun ApodItemCard(
+    item: ApodItem,
+    isFavorite: Boolean,
+    onFavoriteClick: () -> Unit,
+    onItemClick: (ApodItem) -> Unit
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onItemClick(item) },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            if (item.mediaType == "video") {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
+            Box(modifier = Modifier.fillMaxWidth()) {
+                if (item.mediaType == "video") {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.PlayArrow,
-                            contentDescription = "Video",
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Contenido en Video (APOD)",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PlayArrow,
+                                contentDescription = "Video",
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Contenido en Video (APOD)",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
+                } else {
+                    AsyncImage(
+                        model = item.url,
+                        contentDescription = item.title,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp),
+                        contentScale = ContentScale.Crop
+                    )
                 }
-            } else {
-                AsyncImage(
-                    model = item.url,
-                    contentDescription = item.title,
+
+                IconButton(
+                    onClick = onFavoriteClick,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp),
-                    contentScale = ContentScale.Crop
-                )
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                            shape = CircleShape
+                        )
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "Favorito",
+                        tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
 
             Column(
