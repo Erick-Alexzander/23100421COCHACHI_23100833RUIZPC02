@@ -1,12 +1,12 @@
 package dev.erick.pc02nasa.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import dev.erick.pc02nasa.data.local.entity.ApodEntity
 import dev.erick.pc02nasa.model.ApodItem
 import dev.erick.pc02nasa.repository.NasaRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 sealed interface ApodUiState {
@@ -15,12 +15,15 @@ sealed interface ApodUiState {
     data class Error(val message: String) : ApodUiState
 }
 
-class ApodViewModel(
-    private val repository: NasaRepository = NasaRepository()
-) : ViewModel() {
+class ApodViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository = NasaRepository(context = application)
 
     private val _uiState = MutableStateFlow<ApodUiState>(ApodUiState.Loading)
     val uiState: StateFlow<ApodUiState> = _uiState.asStateFlow()
+
+    val favoriteApods: StateFlow<List<ApodEntity>> = repository.favoriteApods
+        ?.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        ?: MutableStateFlow(emptyList())
 
     init {
         fetchLast7DaysApod()
@@ -38,4 +41,55 @@ class ApodViewModel(
             }
         }
     }
+
+    fun getApodByDate(date: String): ApodItem? {
+        val state = _uiState.value
+        if (state is ApodUiState.Success) {
+            val foundInApi = state.items.find { it.date == date }
+            if (foundInApi != null) return foundInApi
+        }
+        val favoriteEntity = favoriteApods.value.find { it.date == date }
+        return favoriteEntity?.toItem()
+    }
+
+    fun isFavorite(date: String): Boolean {
+        return favoriteApods.value.any { it.date == date }
+    }
+
+    fun toggleFavorite(item: ApodItem) {
+        viewModelScope.launch {
+            val date = item.date ?: return@launch
+            val existing = favoriteApods.value.find { it.date == date }
+            if (existing != null) {
+                repository.removeFavorite(existing)
+            } else {
+                repository.insertFavorite(item.toEntity())
+            }
+        }
+    }
+}
+
+fun ApodItem.toEntity(): ApodEntity {
+    return ApodEntity(
+        date = this.date ?: "",
+        title = this.title,
+        url = this.url,
+        explanation = this.explanation,
+        hdurl = this.hdurl,
+        mediaType = this.mediaType,
+        copyright = this.copyright
+    )
+}
+
+fun ApodEntity.toItem(): ApodItem {
+    return ApodItem(
+        date = this.date,
+        title = this.title,
+        url = this.url,
+        explanation = this.explanation,
+        hdurl = this.hdurl,
+        mediaType = this.mediaType,
+        serviceVersion = null,
+        copyright = this.copyright
+    )
 }
